@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import path from "node:path";
+import { readFileSync } from "node:fs";
 import { generateMapping } from "../mapping.js";
 import { scramble, descramble } from "../scrambler.js";
 import {
@@ -8,13 +9,17 @@ import {
   parseFontCmap,
 } from "../font.js";
 
-const BASE_FONT = path.join(
-  import.meta.dirname,
-  "../../fonts/Quicksand/static/Quicksand-Regular.ttf",
+const BASE_FONT_DATA = new Uint8Array(
+  readFileSync(
+    path.join(
+      import.meta.dirname,
+      "../../fonts/Quicksand/static/Quicksand-Regular.ttf",
+    ),
+  ),
 );
 
 describe("full pipeline", () => {
-  it("key → mapping → scramble → font → ligatures match mapping", async () => {
+  it("key → mapping → scramble → font → ligatures match mapping", () => {
     const mapping = generateMapping("integration-test");
     const text = "Hello, World!";
     const scrambled = scramble(text, mapping);
@@ -23,15 +28,16 @@ describe("full pipeline", () => {
     expect(scrambled).toMatch(/^[a-z]+$/);
     expect(descramble(scrambled, mapping)).toBe(text);
 
-    const fontBuf = await createObfuscatedFont(BASE_FONT, mapping);
+    const fontBuf = createObfuscatedFont(BASE_FONT_DATA, mapping);
     const ligatures = inspectLigatures(fontBuf);
     expect(ligatures.length).toBe(95);
 
-    // Verify 'H' ligature maps correctly
     const cmap = parseFontCmap(fontBuf);
     const hMapping = mapping.charToScrambled.get("H")!;
     const hGlyphIdx = cmap.get("H".codePointAt(0)!)!;
-    const inIndices = [...hMapping].map((ch) => cmap.get(ch.codePointAt(0)!)!);
+    const inIndices = [...hMapping].map(
+      (ch) => cmap.get(ch.codePointAt(0)!)!,
+    );
 
     const hLigature = ligatures.find(
       (l) =>
@@ -49,7 +55,7 @@ describe("full pipeline", () => {
     expect(scramble(text, m1)).not.toBe(scramble(text, m2));
   });
 
-  it("handles all printable ASCII in full pipeline", async () => {
+  it("handles all printable ASCII in full pipeline", () => {
     const mapping = generateMapping("full-ascii-test");
     let allChars = "";
     for (let i = 32; i <= 126; i++) allChars += String.fromCharCode(i);
@@ -58,7 +64,7 @@ describe("full pipeline", () => {
     expect(scrambled.length).toBe(allChars.length * 2);
     expect(descramble(scrambled, mapping)).toBe(allChars);
 
-    const fontBuf = await createObfuscatedFont(BASE_FONT, mapping);
+    const fontBuf = createObfuscatedFont(BASE_FONT_DATA, mapping);
     expect(fontBuf.length).toBeGreaterThan(0);
   });
 });

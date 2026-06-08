@@ -1,4 +1,3 @@
-import { readFileSync } from "node:fs";
 import type { ObfuscationMapping } from "./types.js";
 
 // ── Binary read helpers (big-endian) ────────────────────────
@@ -417,11 +416,11 @@ function rebuildFont(
 
 // ── Public API ──────────────────────────────────────────────
 
-export async function createObfuscatedFont(
-  baseFontPath: string,
+export function createObfuscatedFont(
+  fontData: Uint8Array,
   mapping: ObfuscationMapping,
-): Promise<Buffer> {
-  const data = new Uint8Array(readFileSync(baseFontPath));
+): Uint8Array {
+  const data = fontData instanceof Uint8Array ? fontData : new Uint8Array(fontData);
   const { tables } = parseTableDirectory(data);
 
   const cmapRec = tables.find((t) => t.tag === "cmap");
@@ -449,22 +448,21 @@ export async function createObfuscatedFont(
   }
 
   const gsubData = buildGsub(rules);
-  const newFont = rebuildFont(data, new Map([["GSUB", gsubData]]));
-  return Buffer.from(newFont);
+  return rebuildFont(data, new Map([["GSUB", gsubData]]));
 }
 
 export function inspectLigatures(
-  fontBuffer: Buffer,
+  fontData: Uint8Array,
 ): Array<{ sub: number[]; by: number }> {
-  const data = new Uint8Array(fontBuffer);
+  const data = fontData instanceof Uint8Array ? fontData : new Uint8Array(fontData);
   const { tables } = parseTableDirectory(data);
   const gsubRec = tables.find((t) => t.tag === "GSUB");
   if (!gsubRec) return [];
   return parseGsubLigatures(data, gsubRec.offset);
 }
 
-export function parseFontCmap(fontBuffer: Buffer): Map<number, number> {
-  const data = new Uint8Array(fontBuffer);
+export function parseFontCmap(fontData: Uint8Array): Map<number, number> {
+  const data = fontData instanceof Uint8Array ? fontData : new Uint8Array(fontData);
   const { tables } = parseTableDirectory(data);
   const cmapRec = tables.find((t) => t.tag === "cmap");
   if (!cmapRec) throw new Error("Font has no cmap table");

@@ -1,13 +1,18 @@
 import { describe, it, expect } from "vitest";
 import path from "node:path";
+import { readFileSync } from "node:fs";
 import { generateMapping } from "../mapping.js";
 
 import * as binary from "../font-binary.js";
 import * as otjs from "../font-opentype.js";
 
-const BASE_FONT = path.join(
-  import.meta.dirname,
-  "../../fonts/Quicksand/static/Quicksand-Regular.ttf",
+const BASE_FONT_DATA = new Uint8Array(
+  readFileSync(
+    path.join(
+      import.meta.dirname,
+      "../../fonts/Quicksand/static/Quicksand-Regular.ttf",
+    ),
+  ),
 );
 const mapping = generateMapping("font-test-seed");
 
@@ -18,23 +23,23 @@ const implementations = [
 
 for (const { name, mod } of implementations) {
   describe(`createObfuscatedFont [${name}]`, () => {
-    it("produces a valid font buffer", async () => {
-      const buf = await mod.createObfuscatedFont(BASE_FONT, mapping);
-      expect(buf).toBeInstanceOf(Buffer);
+    it("produces a valid font buffer", () => {
+      const buf = mod.createObfuscatedFont(BASE_FONT_DATA, mapping);
+      expect(buf).toBeInstanceOf(Uint8Array);
       expect(buf.length).toBeGreaterThan(0);
 
       const cmap = binary.parseFontCmap(buf);
       expect(cmap.size).toBeGreaterThan(0);
     });
 
-    it("has a GSUB table with ligature rules", async () => {
-      const buf = await mod.createObfuscatedFont(BASE_FONT, mapping);
+    it("has a GSUB table with ligature rules", () => {
+      const buf = mod.createObfuscatedFont(BASE_FONT_DATA, mapping);
       const ligatures = binary.inspectLigatures(buf);
       expect(ligatures.length).toBe(mapping.entries.length);
     });
 
-    it("ligature rules map correct glyph indices", async () => {
-      const buf = await mod.createObfuscatedFont(BASE_FONT, mapping);
+    it("ligature rules map correct glyph indices", () => {
+      const buf = mod.createObfuscatedFont(BASE_FONT_DATA, mapping);
       const cmap = binary.parseFontCmap(buf);
 
       const ligatures = binary.inspectLigatures(buf);
@@ -54,8 +59,8 @@ for (const { name, mod } of implementations) {
       }
     });
 
-    it("round-trip: serialize → inspect → ligatures intact", async () => {
-      const buf = await mod.createObfuscatedFont(BASE_FONT, mapping);
+    it("round-trip: serialize → inspect → ligatures intact", () => {
+      const buf = mod.createObfuscatedFont(BASE_FONT_DATA, mapping);
       const ligatures1 = binary.inspectLigatures(buf);
       const ligatures2 = binary.inspectLigatures(buf);
 
@@ -69,9 +74,9 @@ for (const { name, mod } of implementations) {
 }
 
 describe("cross-implementation consistency", () => {
-  it("both produce identical ligature mappings", async () => {
-    const bufBin = await binary.createObfuscatedFont(BASE_FONT, mapping);
-    const bufOt = await otjs.createObfuscatedFont(BASE_FONT, mapping);
+  it("both produce identical ligature mappings", () => {
+    const bufBin = binary.createObfuscatedFont(BASE_FONT_DATA, mapping);
+    const bufOt = otjs.createObfuscatedFont(BASE_FONT_DATA, mapping);
 
     const ligsBin = binary.inspectLigatures(bufBin);
     const ligsOt = binary.inspectLigatures(bufOt);

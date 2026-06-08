@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
 import path from "node:path";
+import { readFileSync } from "node:fs";
 import { generateMapping } from "./mapping.js";
 import { scramble } from "./scrambler.js";
 import { createObfuscatedFont } from "./font.js";
@@ -14,14 +15,15 @@ const BASE_FONT = path.join(
   "../fonts/Quicksand/static/Quicksand-Regular.ttf",
 );
 
-let cachedFont: Buffer;
+let cachedFont: Uint8Array;
 let mapping: ReturnType<typeof generateMapping>;
 
-async function init() {
+function init() {
   console.log(`Generating mapping with seed: "${SEED}"`);
   mapping = generateMapping(SEED);
   console.log(`Creating obfuscated font from ${BASE_FONT}...`);
-  cachedFont = await createObfuscatedFont(BASE_FONT, mapping);
+  const fontData = new Uint8Array(readFileSync(BASE_FONT));
+  cachedFont = createObfuscatedFont(fontData, mapping);
   console.log(`Font ready (${(cachedFont.length / 1024).toFixed(1)} KB)`);
 }
 
@@ -121,8 +123,7 @@ function escapeAttr(s: string): string {
   return escapeHtml(s).replace(/'/g, "&#39;");
 }
 
-init().then(() => {
-  serve({ fetch: app.fetch, port: PORT }, () => {
-    console.log(`obfuscai demo running at http://localhost:${PORT}`);
-  });
+init();
+serve({ fetch: app.fetch, port: PORT }, () => {
+  console.log(`obfuscai demo running at http://localhost:${PORT}`);
 });
