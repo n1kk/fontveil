@@ -1,6 +1,12 @@
-import opentype from 'opentype.js';
-import { readFileSync } from 'node:fs';
-import type { ObfuscationMapping } from './types.js';
+import opentype from "opentype.js";
+import { readFileSync } from "node:fs";
+import type { ObfuscationMapping } from "./types.js";
+
+// @types/opentype.js is incomplete — these methods exist at runtime
+interface SubstitutionExt {
+  addLigature(feature: string, ligature: { sub: number[]; by: number }): void;
+  getLigatures(feature: string): Array<{ sub: number[]; by: number }>;
+}
 
 export async function createObfuscatedFont(
   baseFontPath: string,
@@ -19,7 +25,9 @@ export async function createObfuscatedFont(
 
   for (const entry of mapping.entries) {
     const outGlyphIndex = charToGlyphIdx(font, entry.char);
-    const inGlyphIndices = [...entry.scrambledSeq].map((ch) => charToGlyphIdx(font, ch));
+    const inGlyphIndices = [...entry.scrambledSeq].map((ch) =>
+      charToGlyphIdx(font, ch),
+    );
 
     if (outGlyphIndex === 0 || inGlyphIndices.some((idx) => idx === 0)) {
       throw new Error(
@@ -27,7 +35,7 @@ export async function createObfuscatedFont(
       );
     }
 
-    font.substitution.addLigature('liga', {
+    (font.substitution as unknown as SubstitutionExt).addLigature("liga", {
       sub: inGlyphIndices,
       by: outGlyphIndex,
     });
@@ -41,7 +49,9 @@ function charToGlyphIdx(font: opentype.Font, char: string): number {
   return font.charToGlyphIndex(char);
 }
 
-export function inspectLigatures(fontBuffer: Buffer): Array<{ sub: number[]; by: number }> {
+export function inspectLigatures(
+  fontBuffer: Buffer,
+): Array<{ sub: number[]; by: number }> {
   const arrayBuffer = fontBuffer.buffer.slice(
     fontBuffer.byteOffset,
     fontBuffer.byteOffset + fontBuffer.byteLength,
@@ -49,7 +59,7 @@ export function inspectLigatures(fontBuffer: Buffer): Array<{ sub: number[]; by:
   const font = opentype.parse(arrayBuffer as ArrayBuffer);
 
   try {
-    return font.substitution.getLigatures('liga') as Array<{ sub: number[]; by: number }>;
+    return (font.substitution as unknown as SubstitutionExt).getLigatures("liga");
   } catch {
     return [];
   }

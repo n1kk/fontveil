@@ -26,7 +26,7 @@ async function init() {
 }
 
 app.get("/font.ttf", (c) => {
-  return c.body(cachedFont, 200, {
+  return c.body(new Uint8Array(cachedFont), 200, {
     "Content-Type": "font/ttf",
     "Cache-Control": "public, max-age=31536000",
   });

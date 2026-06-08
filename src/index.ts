@@ -1,4 +1,8 @@
-export { generateMapping } from './mapping.js';
-export { scramble, descramble } from './scrambler.js';
-export { createObfuscatedFont, inspectLigatures } from './font.js';
-export type { CharMapping, MappingOptions, ObfuscationMapping } from './types.js';
+export { generateMapping } from "./mapping.js";
+export { scramble, descramble } from "./scrambler.js";
+export { createObfuscatedFont, inspectLigatures } from "./font.js";
+export type {
+  CharMapping,
+  MappingOptions,
+  ObfuscationMapping,
+} from "./types.js";

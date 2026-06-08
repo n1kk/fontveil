@@ -53,7 +53,7 @@ describe('createObfuscatedFont', () => {
     // Parse again and check
     const ab = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
     const font2 = opentype.parse(ab as ArrayBuffer);
-    const ligatures2 = font2.substitution.getLigatures('liga') as Array<{ sub: number[]; by: number }>;
+    const ligatures2 = inspectLigatures(Buffer.from(ab as ArrayBuffer));
 
     expect(ligatures2.length).toBe(ligatures1.length);
     for (let i = 0; i < ligatures1.length; i++) {
