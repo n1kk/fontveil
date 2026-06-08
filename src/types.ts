@@ -15,7 +15,7 @@ export interface MappingOptions {
 }
 
 export interface ObfuscationMapping {
-  seed: string;
+  key: string;
   seqLength: number;
   charToScrambled: Map<string, string>;
   scrambledToChar: Map<string, string>;
