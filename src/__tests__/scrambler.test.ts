@@ -17,27 +17,25 @@ describe('scramble', () => {
     expect(result).toMatch(/^[a-z]+$/);
   });
 
-  it('throws for characters not in mapping', () => {
-    expect(() => scramble('emoji: 🎉', mapping)).toThrow();
+  it('passes through characters not in mapping', () => {
+    const result = scramble('emoji: 🎉', mapping);
+    expect(result).toContain('🎉');
+    expect(descramble(result, mapping)).toBe('emoji: 🎉');
   });
 });
 
 describe('descramble', () => {
-  it('throws if scrambled length is not divisible by seqLength', () => {
-    expect(() => descramble('abc', mapping)).toThrow('not divisible');
-  });
-
-  it('throws for unknown sequences', () => {
-    // Create a mapping with tiny charset so most sequences are unknown
+  it('passes through unknown sequences as individual characters', () => {
     const tiny = generateMapping('tiny', {
       charset: ['a'],
       scrambleAlphabet: 'xyz',
       seqLength: 2,
     });
-    // 'zz' is likely not the one assigned to 'a'
     const assigned = tiny.charToScrambled.get('a')!;
-    const unknown = assigned.includes('zz') ? 'xy' : 'zz';
-    expect(() => descramble(unknown, tiny)).toThrow();
+    const unknown = assigned[0] === 'zz' ? 'xy' : 'zz';
+    const result = descramble(unknown, tiny);
+    // Unknown sequence chars pass through one at a time
+    expect(result.length).toBe(2);
   });
 });
 
@@ -79,6 +77,15 @@ describe('round-trip', () => {
     for (let i = 0; i < 10; i++) {
       expect(descramble(scramble(text, vm), vm)).toBe(text);
     }
+  });
+
+  it('round-trips with excluded characters', () => {
+    const m = generateMapping('exclude-test', { exclude: [' ', '\n'] });
+    const text = 'Hello World\nNew line here';
+    const scrambled = scramble(text, m);
+    expect(scrambled).toContain(' ');
+    expect(scrambled).toContain('\n');
+    expect(descramble(scrambled, m)).toBe(text);
   });
 
   it('handles all 95 ASCII printable characters', () => {

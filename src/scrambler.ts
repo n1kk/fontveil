@@ -5,9 +5,8 @@ export function scramble(text: string, mapping: ObfuscationMapping): string {
   for (const char of text) {
     const seqs = mapping.charToScrambled.get(char);
     if (seqs === undefined) {
-      throw new Error(
-        `Character '${char}' (U+${char.codePointAt(0)!.toString(16).padStart(4, "0")}) is not in the mapping`,
-      );
+      result += char;
+      continue;
     }
     result += seqs.length === 1
       ? seqs[0]
@@ -21,22 +20,19 @@ export function descramble(
   mapping: ObfuscationMapping,
 ): string {
   const { seqLength } = mapping;
-  if (scrambled.length % seqLength !== 0) {
-    throw new Error(
-      `Scrambled text length ${scrambled.length} is not divisible by sequence length ${seqLength}`,
-    );
-  }
 
   let result = "";
-  for (let i = 0; i < scrambled.length; i += seqLength) {
+  let i = 0;
+  while (i < scrambled.length) {
     const seq = scrambled.slice(i, i + seqLength);
     const char = mapping.scrambledToChar.get(seq);
-    if (char === undefined) {
-      throw new Error(
-        `Sequence '${seq}' at position ${i} is not in the mapping`,
-      );
+    if (char !== undefined) {
+      result += char;
+      i += seqLength;
+    } else {
+      result += scrambled[i];
+      i++;
     }
-    result += char;
   }
   return result;
 }

@@ -28,28 +28,16 @@ const BLOG_TEMPLATE = readFileSync(
 let cachedFont: Uint8Array;
 let mapping: ReturnType<typeof generateMapping>;
 
-function scrambleWords(text: string, m: ObfuscationMapping): string {
-  return text
-    .split("\n")
-    .map((line) =>
-      line
-        .split(" ")
-        .map((word) => (word === "" ? "" : scramble(word, m)))
-        .join(" "),
-    )
-    .join("\n");
-}
-
 function scrambleMarkdown(md: string, m: ObfuscationMapping): string {
   const instance = new Marked({
     walkTokens(token) {
       if (
         token.type === "text" ||
-        token.type === "escape"
+        token.type === "escape" ||
+        token.type === "codespan" ||
+        token.type === "code"
       ) {
-        token.text = scrambleWords(token.text, m);
-      } else if (token.type === "codespan" || token.type === "code") {
-        token.text = scrambleWords(token.text, m);
+        token.text = scramble(token.text, m);
       }
     },
   });
@@ -58,7 +46,7 @@ function scrambleMarkdown(md: string, m: ObfuscationMapping): string {
 
 function init() {
   console.log(`Generating mapping with seed: "${SEED}"`);
-  mapping = generateMapping(SEED, { variants: 3 });
+  mapping = generateMapping(SEED, { variants: 3, exclude: [" ", "\n", "\t"] });
   console.log(`Creating obfuscated font from ${BASE_FONT}...`);
   const fontData = new Uint8Array(readFileSync(BASE_FONT));
   cachedFont = createObfuscatedFont(fontData, mapping);

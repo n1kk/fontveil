@@ -83,6 +83,13 @@ describe("generateMapping", () => {
     expect(new Set(allSeqs).size).toBe(95 * 3);
   });
 
+  it("excludes characters from charset", () => {
+    const m = generateMapping("test", { exclude: [" ", "\n", "\t"] });
+    expect(m.charToScrambled.has(" ")).toBe(false);
+    expect(m.charToScrambled.has("\n")).toBe(false);
+    expect(m.entries.length).toBe(94); // 95 - 1 (space is the only one in default charset)
+  });
+
   it("throws when alphabet is too small for charset x variants", () => {
     expect(() =>
       generateMapping("test", { scrambleAlphabet: "ab", seqLength: 1 }),

@@ -8,6 +8,8 @@ export interface CharMapping {
 export interface MappingOptions {
   /** Characters to include in the mapping (default: ASCII printable 32-126) */
   charset?: string[];
+  /** Characters to exclude from the charset — they pass through unscrambled */
+  exclude?: string[];
   /** Alphabet used for scrambled sequences (default: a-z) */
   scrambleAlphabet?: string;
   /** Length of each scrambled sequence (default: 2) */

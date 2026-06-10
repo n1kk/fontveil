@@ -69,7 +69,10 @@ export function generateMapping(
   key: string | number,
   options?: MappingOptions,
 ): ObfuscationMapping {
-  const charset = options?.charset ?? getDefaultCharset();
+  const exclude = options?.exclude ? new Set(options.exclude) : undefined;
+  const charset = (options?.charset ?? getDefaultCharset()).filter(
+    (ch) => !exclude?.has(ch),
+  );
   const alphabet = options?.scrambleAlphabet ?? DEFAULT_ALPHABET;
   const seqLength = options?.seqLength ?? 2;
   const variants = options?.variants ?? 1;
