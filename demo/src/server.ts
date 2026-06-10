@@ -3,10 +3,12 @@ import { serve } from "@hono/node-server";
 import path from "node:path";
 import { readFileSync } from "node:fs";
 import { Marked } from "marked";
-import { generateMapping } from "./mapping.js";
-import { scramble } from "./scrambler.js";
-import type { ObfuscationMapping } from "./types.js";
-import { createObfuscatedFont } from "./font.js";
+import {
+  generateMapping,
+  scramble,
+  createObfuscatedFont,
+  type ObfuscationMapping,
+} from "obfuscai";
 
 const app = new Hono();
 const PORT = Number(process.env.PORT) || 3000;
@@ -14,7 +16,7 @@ const SEED = process.env.SEED || "obfuscai-default-seed";
 
 const BASE_FONT = path.join(
   import.meta.dirname,
-  "../fonts/Quicksand/Quicksand-VariableFont_wght.ttf",
+  "../../fonts/Quicksand/Quicksand-VariableFont_wght.ttf",
 );
 const BLOG_MD = readFileSync(
   path.join(import.meta.dirname, "./content/blog-post.md"),

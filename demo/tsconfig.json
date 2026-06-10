@@ -3,15 +3,10 @@
     "target": "esnext",
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
-    "declaration": true,
-    "sourceMap": true,
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src"],
-  "exclude": ["demo"]
+  "include": ["src"]
 }
