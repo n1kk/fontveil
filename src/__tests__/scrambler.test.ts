@@ -36,7 +36,7 @@ describe('descramble', () => {
     });
     // 'zz' is likely not the one assigned to 'a'
     const assigned = tiny.charToScrambled.get('a')!;
-    const unknown = assigned === 'zz' ? 'xy' : 'zz';
+    const unknown = assigned.includes('zz') ? 'xy' : 'zz';
     expect(() => descramble(unknown, tiny)).toThrow();
   });
 });
@@ -60,6 +60,25 @@ describe('round-trip', () => {
   it('handles empty string', () => {
     expect(scramble('', mapping)).toBe('');
     expect(descramble('', mapping)).toBe('');
+  });
+
+  it('with variants, same text scrambles differently each time', () => {
+    const vm = generateMapping('variant-test', { variants: 3 });
+    const text = 'aaaaaaaaaa';
+    const results = new Set<string>();
+    for (let i = 0; i < 20; i++) {
+      results.add(scramble(text, vm));
+    }
+    // With 3 variants for 'a' and 10 chars, should produce multiple different outputs
+    expect(results.size).toBeGreaterThan(1);
+  });
+
+  it('with variants, descramble still recovers original', () => {
+    const vm = generateMapping('variant-roundtrip', { variants: 5 });
+    const text = 'Hello, World! Testing variants.';
+    for (let i = 0; i < 10; i++) {
+      expect(descramble(scramble(text, vm), vm)).toBe(text);
+    }
   });
 
   it('handles all 95 ASCII printable characters', () => {

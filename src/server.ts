@@ -20,7 +20,7 @@ let mapping: ReturnType<typeof generateMapping>;
 
 function init() {
   console.log(`Generating mapping with seed: "${SEED}"`);
-  mapping = generateMapping(SEED);
+  mapping = generateMapping(SEED, { variants: 3 });
   console.log(`Creating obfuscated font from ${BASE_FONT}...`);
   const fontData = new Uint8Array(readFileSync(BASE_FONT));
   cachedFont = createObfuscatedFont(fontData, mapping);

@@ -30,22 +30,24 @@ describe("full pipeline", () => {
 
     const fontBuf = createObfuscatedFont(BASE_FONT_DATA, mapping);
     const ligatures = inspectLigatures(fontBuf);
-    expect(ligatures.length).toBe(95);
+    expect(ligatures.length).toBe(95 * mapping.variants);
 
     const cmap = parseFontCmap(fontBuf);
-    const hMapping = mapping.charToScrambled.get("H")!;
+    const hSeqs = mapping.charToScrambled.get("H")!;
     const hGlyphIdx = cmap.get("H".codePointAt(0)!)!;
-    const inIndices = [...hMapping].map(
-      (ch) => cmap.get(ch.codePointAt(0)!)!,
-    );
 
-    const hLigature = ligatures.find(
-      (l) =>
-        l.sub.length === inIndices.length &&
-        l.sub.every((v, i) => v === inIndices[i]),
-    );
-    expect(hLigature).toBeDefined();
-    expect(hLigature!.by).toBe(hGlyphIdx);
+    for (const seq of hSeqs) {
+      const inIndices = [...seq].map(
+        (ch) => cmap.get(ch.codePointAt(0)!)!,
+      );
+      const hLigature = ligatures.find(
+        (l) =>
+          l.sub.length === inIndices.length &&
+          l.sub.every((v, i) => v === inIndices[i]),
+      );
+      expect(hLigature).toBeDefined();
+      expect(hLigature!.by).toBe(hGlyphIdx);
+    }
   });
 
   it("different keys produce different scrambled output for same text", () => {
@@ -66,5 +68,16 @@ describe("full pipeline", () => {
 
     const fontBuf = createObfuscatedFont(BASE_FONT_DATA, mapping);
     expect(fontBuf.length).toBeGreaterThan(0);
+  });
+
+  it("full pipeline with variants", () => {
+    const mapping = generateMapping("variant-pipeline", { variants: 3 });
+    const text = "Hello, World!";
+    const scrambled = scramble(text, mapping);
+    expect(descramble(scrambled, mapping)).toBe(text);
+
+    const fontBuf = createObfuscatedFont(BASE_FONT_DATA, mapping);
+    const ligatures = inspectLigatures(fontBuf);
+    expect(ligatures.length).toBe(95 * 3);
   });
 });

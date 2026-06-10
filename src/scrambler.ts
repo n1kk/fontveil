@@ -3,13 +3,15 @@ import type { ObfuscationMapping } from "./types.js";
 export function scramble(text: string, mapping: ObfuscationMapping): string {
   let result = "";
   for (const char of text) {
-    const seq = mapping.charToScrambled.get(char);
-    if (seq === undefined) {
+    const seqs = mapping.charToScrambled.get(char);
+    if (seqs === undefined) {
       throw new Error(
         `Character '${char}' (U+${char.codePointAt(0)!.toString(16).padStart(4, "0")}) is not in the mapping`,
       );
     }
-    result += seq;
+    result += seqs.length === 1
+      ? seqs[0]
+      : seqs[Math.floor(Math.random() * seqs.length)];
   }
   return result;
 }

@@ -433,18 +433,20 @@ export function createObfuscatedFont(
     if (!outGlyph)
       throw new Error(`Font missing glyph for '${entry.char}'`);
 
-    const [first, ...rest] = [...entry.scrambledSeq];
-    const firstGlyph = charToGlyph.get(first.codePointAt(0)!);
-    if (!firstGlyph)
-      throw new Error(`Font missing glyph for '${first}'`);
+    for (const seq of entry.scrambledSeqs) {
+      const [first, ...rest] = [...seq];
+      const firstGlyph = charToGlyph.get(first.codePointAt(0)!);
+      if (!firstGlyph)
+        throw new Error(`Font missing glyph for '${first}'`);
 
-    const restGlyphs = rest.map((ch) => {
-      const g = charToGlyph.get(ch.codePointAt(0)!);
-      if (!g) throw new Error(`Font missing glyph for '${ch}'`);
-      return g;
-    });
+      const restGlyphs = rest.map((ch) => {
+        const g = charToGlyph.get(ch.codePointAt(0)!);
+        if (!g) throw new Error(`Font missing glyph for '${ch}'`);
+        return g;
+      });
 
-    rules.push({ firstGlyph, restGlyphs, outputGlyph: outGlyph });
+      rules.push({ firstGlyph, restGlyphs, outputGlyph: outGlyph });
+    }
   }
 
   const gsubData = buildGsub(rules);

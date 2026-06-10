@@ -72,13 +72,16 @@ export function generateMapping(
   const charset = options?.charset ?? getDefaultCharset();
   const alphabet = options?.scrambleAlphabet ?? DEFAULT_ALPHABET;
   const seqLength = options?.seqLength ?? 2;
+  const variants = options?.variants ?? 1;
 
   const allSequences = generateAllSequences(alphabet, seqLength);
+  const needed = charset.length * variants;
 
-  if (allSequences.length < charset.length) {
+  if (allSequences.length < needed) {
     throw new Error(
       `Alphabet of size ${alphabet.length} with sequence length ${seqLength} ` +
-        `produces ${allSequences.length} combinations, but need ${charset.length} for the charset`,
+        `produces ${allSequences.length} combinations, but need ${needed} ` +
+        `for ${charset.length} chars x ${variants} variants`,
     );
   }
 
@@ -88,20 +91,25 @@ export function generateMapping(
   const shuffled = fisherYatesShuffle(allSequences, rng);
 
   const entries: CharMapping[] = [];
-  const charToScrambled = new Map<string, string>();
+  const charToScrambled = new Map<string, string[]>();
   const scrambledToChar = new Map<string, string>();
 
   for (let i = 0; i < charset.length; i++) {
     const char = charset[i];
-    const scrambledSeq = shuffled[i];
-    entries.push({ char, scrambledSeq });
-    charToScrambled.set(char, scrambledSeq);
-    scrambledToChar.set(scrambledSeq, char);
+    const seqs: string[] = [];
+    for (let v = 0; v < variants; v++) {
+      const seq = shuffled[i * variants + v];
+      seqs.push(seq);
+      scrambledToChar.set(seq, char);
+    }
+    entries.push({ char, scrambledSeqs: seqs });
+    charToScrambled.set(char, seqs);
   }
 
   return {
     key: normalized,
     seqLength,
+    variants,
     charToScrambled,
     scrambledToChar,
     entries,

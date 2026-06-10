@@ -35,7 +35,9 @@ for (const { name, mod } of implementations) {
     it("has a GSUB table with ligature rules", () => {
       const buf = mod.createObfuscatedFont(BASE_FONT_DATA, mapping);
       const ligatures = binary.inspectLigatures(buf);
-      expect(ligatures.length).toBe(mapping.entries.length);
+      expect(ligatures.length).toBe(
+        mapping.entries.length * mapping.variants,
+      );
     });
 
     it("ligature rules map correct glyph indices", () => {
@@ -50,12 +52,14 @@ for (const { name, mod } of implementations) {
 
       for (const entry of mapping.entries.slice(0, 10)) {
         const expectedOut = cmap.get(entry.char.codePointAt(0)!);
-        const inIndices = [...entry.scrambledSeq].map(
-          (ch) => cmap.get(ch.codePointAt(0)!)!,
-        );
-        const key = inIndices.join(",");
-        expect(ligMap.has(key)).toBe(true);
-        expect(ligMap.get(key)).toBe(expectedOut);
+        for (const seq of entry.scrambledSeqs) {
+          const inIndices = [...seq].map(
+            (ch) => cmap.get(ch.codePointAt(0)!)!,
+          );
+          const key = inIndices.join(",");
+          expect(ligMap.has(key)).toBe(true);
+          expect(ligMap.get(key)).toBe(expectedOut);
+        }
       }
     });
 
@@ -69,6 +73,13 @@ for (const { name, mod } of implementations) {
         expect(ligatures2[i].by).toBe(ligatures1[i].by);
         expect(ligatures2[i].sub).toEqual(ligatures1[i].sub);
       }
+    });
+
+    it("works with multiple variants", () => {
+      const vm = generateMapping("font-variant-test", { variants: 3 });
+      const buf = mod.createObfuscatedFont(BASE_FONT_DATA, vm);
+      const ligatures = binary.inspectLigatures(buf);
+      expect(ligatures.length).toBe(95 * 3);
     });
   });
 }

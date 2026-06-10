@@ -20,20 +20,23 @@ export function createObfuscatedFont(
 
   for (const entry of mapping.entries) {
     const outGlyphIndex = font.charToGlyphIndex(entry.char);
-    const inGlyphIndices = [...entry.scrambledSeq].map((ch) =>
-      font.charToGlyphIndex(ch),
-    );
 
-    if (outGlyphIndex === 0 || inGlyphIndices.some((idx) => idx === 0)) {
-      throw new Error(
-        `Font missing glyph for mapping: '${entry.scrambledSeq}' -> '${entry.char}'`,
+    for (const seq of entry.scrambledSeqs) {
+      const inGlyphIndices = [...seq].map((ch) =>
+        font.charToGlyphIndex(ch),
       );
-    }
 
-    (font.substitution as unknown as SubstitutionExt).addLigature("liga", {
-      sub: inGlyphIndices,
-      by: outGlyphIndex,
-    });
+      if (outGlyphIndex === 0 || inGlyphIndices.some((idx) => idx === 0)) {
+        throw new Error(
+          `Font missing glyph for mapping: '${seq}' -> '${entry.char}'`,
+        );
+      }
+
+      (font.substitution as unknown as SubstitutionExt).addLigature("liga", {
+        sub: inGlyphIndices,
+        by: outGlyphIndex,
+      });
+    }
   }
 
   return new Uint8Array(font.toArrayBuffer());
