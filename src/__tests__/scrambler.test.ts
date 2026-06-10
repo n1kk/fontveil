@@ -88,6 +88,22 @@ describe('round-trip', () => {
     expect(descramble(scrambled, m)).toBe(text);
   });
 
+  it('round-trips with variable-length tiers', () => {
+    const m = generateMapping('tiers-test', { tiers: [3, 7, 16] });
+    const text = 'Hello, World! Variable lengths.';
+    for (let i = 0; i < 10; i++) {
+      expect(descramble(scramble(text, m), m)).toBe(text);
+    }
+  });
+
+  it('round-trips with tiers + variants', () => {
+    const m = generateMapping('tiers-variants', { tiers: [3, 7, 16], variants: 3 });
+    const text = 'All features combined!';
+    for (let i = 0; i < 10; i++) {
+      expect(descramble(scramble(text, m), m)).toBe(text);
+    }
+  });
+
   it('handles all 95 ASCII printable characters', () => {
     let allChars = '';
     for (let i = 32; i <= 126; i++) {

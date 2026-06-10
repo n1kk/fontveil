@@ -19,17 +19,24 @@ export function descramble(
   scrambled: string,
   mapping: ObfuscationMapping,
 ): string {
-  const { seqLength } = mapping;
+  const { seqLengths } = mapping;
 
   let result = "";
   let i = 0;
   while (i < scrambled.length) {
-    const seq = scrambled.slice(i, i + seqLength);
-    const char = mapping.scrambledToChar.get(seq);
-    if (char !== undefined) {
-      result += char;
-      i += seqLength;
-    } else {
+    let found = false;
+    for (const len of seqLengths) {
+      if (i + len > scrambled.length) continue;
+      const seq = scrambled.slice(i, i + len);
+      const char = mapping.scrambledToChar.get(seq);
+      if (char !== undefined) {
+        result += char;
+        i += len;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
       result += scrambled[i];
       i++;
     }

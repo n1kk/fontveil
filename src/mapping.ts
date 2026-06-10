@@ -31,16 +31,46 @@ function seededRng(key: string): () => number {
   };
 }
 
-function generateAllSequences(alphabet: string, length: number): string[] {
+function allCombos(alphabet: string, length: number): string[] {
   if (length === 1) return [...alphabet];
+  const sequences: string[] = [];
+  const suffixes = allCombos(alphabet, length - 1);
+  for (const ch of alphabet) {
+    for (const s of suffixes) sequences.push(ch + s);
+  }
+  return sequences;
+}
+
+function generateSequences(alphabet: string, tiers: number[]): string[] {
+  const total = tiers.reduce((a, b) => a + b, 0);
+  if (total > alphabet.length) {
+    throw new Error(
+      `Tiers require ${total} starting letters but alphabet has ${alphabet.length}`,
+    );
+  }
 
   const sequences: string[] = [];
-  const prev = generateAllSequences(alphabet, length - 1);
-  for (const ch of alphabet) {
-    for (const seq of prev) {
-      sequences.push(ch + seq);
+  let offset = 0;
+
+  for (let t = 0; t < tiers.length; t++) {
+    const count = tiers[t];
+    if (count === 0) continue;
+    const starters = alphabet.slice(offset, offset + count);
+    offset += count;
+    const length = t + 1;
+
+    if (length === 1) {
+      for (const ch of starters) sequences.push(ch);
+    } else {
+      const suffixes = allCombos(alphabet, length - 1);
+      for (const start of starters) {
+        for (const suffix of suffixes) {
+          sequences.push(start + suffix);
+        }
+      }
     }
   }
+
   return sequences;
 }
 
@@ -62,16 +92,21 @@ export function generateMapping(
     (ch) => !exclude?.has(ch),
   );
   const alphabet = options?.scrambleAlphabet ?? DEFAULT_ALPHABET;
-  const seqLength = options?.seqLength ?? 2;
   const variants = options?.variants ?? 1;
 
-  const allSequences = generateAllSequences(alphabet, seqLength);
+  const seqLength = options?.seqLength ?? 2;
+  const tiers = options?.tiers ?? [...Array(seqLength - 1).fill(0), alphabet.length];
+  const seqLengths = tiers.reduce<number[]>((acc, count, i) => {
+    if (count > 0) acc.push(i + 1);
+    return acc;
+  }, []);
+  const allSequences = generateSequences(alphabet, tiers);
+
   const needed = charset.length * variants;
 
   if (allSequences.length < needed) {
     throw new Error(
-      `Alphabet of size ${alphabet.length} with sequence length ${seqLength} ` +
-        `produces ${allSequences.length} combinations, but need ${needed} ` +
+      `${allSequences.length} sequences available, but need ${needed} ` +
         `for ${charset.length} chars x ${variants} variants`,
     );
   }
@@ -98,7 +133,7 @@ export function generateMapping(
 
   return {
     key: normalized,
-    seqLength,
+    seqLengths,
     variants,
     charToScrambled,
     scrambledToChar,

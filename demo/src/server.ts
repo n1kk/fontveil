@@ -52,7 +52,10 @@ function scrambleMarkdown(md: string, m: ObfuscationMapping): string {
 
 function init() {
   console.log(`Generating mapping with seed: "${SEED}"`);
-  mapping = generateMapping(SEED, { variants: 3, exclude: [" ", "\n", "\t"] });
+  mapping = generateMapping(SEED, {
+    variants: 3,
+    exclude: [" ", "\n", "\t"],
+  });
   console.log(`Creating obfuscated font from ${BASE_FONT}...`);
   const fontData = new Uint8Array(readFileSync(BASE_FONT));
   cachedFont = createObfuscatedFont(fontData, mapping);
@@ -72,8 +75,7 @@ app.get("/", (c) => {
     "Hello, World! This text is obfuscated in the HTML source.";
 
   const scrambled = scramble(originalText, mapping);
-  const html = INDEX_TEMPLATE
-    .replaceAll("{{scrambled}}", scrambled)
+  const html = INDEX_TEMPLATE.replaceAll("{{scrambled}}", scrambled)
     .replace("{{originalText}}", escapeHtml(originalText))
     .replace("{{originalAttr}}", escapeAttr(originalText))
     .replace("{{seed}}", SEED);

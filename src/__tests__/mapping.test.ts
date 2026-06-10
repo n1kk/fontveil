@@ -64,7 +64,7 @@ describe("generateMapping", () => {
 
   it("supports custom sequence length", () => {
     const m = generateMapping("test", { seqLength: 3 });
-    expect(m.seqLength).toBe(3);
+    expect(m.seqLengths).toEqual([3]);
     for (const entry of m.entries) {
       for (const seq of entry.scrambledSeqs) {
         expect(seq.length).toBe(3);
@@ -97,5 +97,45 @@ describe("generateMapping", () => {
     expect(() =>
       generateMapping("test", { variants: 8 }),
     ).toThrow(); // 95*8=760 > 676
+  });
+
+  it("supports tiers for variable-length sequences", () => {
+    const m = generateMapping("test", { tiers: [3, 7, 16] });
+    expect(m.seqLengths).toEqual([1, 2, 3]);
+
+    const allSeqs = m.entries.flatMap((e) => e.scrambledSeqs);
+    expect(new Set(allSeqs).size).toBe(allSeqs.length);
+
+    const lengths = new Set(allSeqs.map((s) => s.length));
+    expect(lengths.size).toBeGreaterThan(1);
+  });
+
+  it("tiers produce prefix-free sequences", () => {
+    const m = generateMapping("test", { tiers: [3, 7, 16] });
+    const allSeqs = m.entries.flatMap((e) => e.scrambledSeqs);
+
+    for (const a of allSeqs) {
+      for (const b of allSeqs) {
+        if (a !== b && a.length < b.length) {
+          expect(b.startsWith(a)).toBe(false);
+        }
+      }
+    }
+  });
+
+  it("tiers with variants", () => {
+    const m = generateMapping("test", { tiers: [3, 7, 16], variants: 3 });
+    expect(m.variants).toBe(3);
+    for (const entry of m.entries) {
+      expect(entry.scrambledSeqs.length).toBe(3);
+    }
+    const allSeqs = m.entries.flatMap((e) => e.scrambledSeqs);
+    expect(new Set(allSeqs).size).toBe(allSeqs.length);
+  });
+
+  it("throws when tiers need more letters than alphabet has", () => {
+    expect(() =>
+      generateMapping("test", { tiers: [10, 10, 10] }),
+    ).toThrow();
   });
 });
