@@ -22,6 +22,10 @@ const BLOG_MD = readFileSync(
   path.join(import.meta.dirname, "./content/blog-post.md"),
   "utf-8",
 );
+const INDEX_TEMPLATE = readFileSync(
+  path.join(import.meta.dirname, "./templates/index.html"),
+  "utf-8",
+);
 const BLOG_TEMPLATE = readFileSync(
   path.join(import.meta.dirname, "./templates/blog.html"),
   "utf-8",
@@ -68,75 +72,13 @@ app.get("/", (c) => {
     "Hello, World! This text is obfuscated in the HTML source.";
 
   const scrambled = scramble(originalText, mapping);
+  const html = INDEX_TEMPLATE
+    .replaceAll("{{scrambled}}", scrambled)
+    .replace("{{originalText}}", escapeHtml(originalText))
+    .replace("{{originalAttr}}", escapeAttr(originalText))
+    .replace("{{seed}}", SEED);
 
-  return c.html(`<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>obfuscai demo</title>
-  <style>
-    @font-face {
-      font-family: 'Obfuscated';
-      src: url('/font.ttf') format('truetype');
-      font-display: block;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: system-ui, sans-serif;
-      max-width: 720px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-      line-height: 1.6;
-      color: #1a1a1a;
-    }
-    h1 { margin-bottom: 1.5rem; }
-    .obfuscated {
-      font-family: 'Obfuscated', sans-serif;
-      font-size: 1.5rem;
-      padding: 1rem;
-      background: #f0f0f0;
-      border-radius: 8px;
-      margin: 1rem 0;
-    }
-    .source {
-      font-family: monospace;
-      font-size: 0.9rem;
-      padding: 1rem;
-      background: #1a1a1a;
-      color: #4ade80;
-      border-radius: 8px;
-      margin: 1rem 0;
-      word-break: break-all;
-    }
-    label { font-weight: 600; display: block; margin-top: 1.5rem; }
-    .note { color: #666; font-size: 0.85rem; margin-top: 0.25rem; }
-  </style>
-</head>
-<body>
-  <h1>obfuscai</h1>
-
-  <label>Rendered (what the browser shows):</label>
-  <div class="obfuscated">${scrambled}</div>
-
-  <label>HTML source (what's in the DOM):</label>
-  <div class="source">${scrambled}</div>
-  <p class="note">The text above is the raw scrambled content. The font's ligature rules decode it visually.</p>
-
-  <label>Original text:</label>
-  <p style="margin-top:0.5rem">${escapeHtml(originalText)}</p>
-
-  <label>Seed:</label>
-  <p style="margin-top:0.5rem"><code>${SEED}</code></p>
-
-  <form style="margin-top:2rem">
-    <label for="text">Try your own text:</label>
-    <input id="text" name="text" type="text" value="${escapeAttr(originalText)}"
-      style="width:100%;padding:0.5rem;font-size:1rem;margin-top:0.5rem;border:1px solid #ccc;border-radius:4px">
-    <button type="submit" style="margin-top:0.5rem;padding:0.5rem 1rem;cursor:pointer">Scramble</button>
-  </form>
-</body>
-</html>`);
+  return c.html(html);
 });
 
 app.get("/blog", (c) => {
