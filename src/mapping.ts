@@ -18,23 +18,11 @@ function normalizeKey(key: string | number): string {
   return String(key).normalize("NFKC").trim();
 }
 
-function hashToSeed(str: string): number {
-  let h1 = 0xdeadbeef;
-  let h2 = 0x41c6ce57;
-  for (let i = 0; i < str.length; i++) {
-    const ch = str.charCodeAt(i);
-    h1 = Math.imul(h1 ^ ch, 2654435761);
-    h2 = Math.imul(h2 ^ ch, 1597334677);
+function seededRng(key: string): () => number {
+  let s = 0;
+  for (let i = 0; i < key.length; i++) {
+    s = Math.imul(s ^ key.charCodeAt(i), 0x9e3779b1);
   }
-  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
-  h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
-  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
-  h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
-  return (h2 >>> 0) * 0x100000000 + (h1 >>> 0);
-}
-
-function mulberry32(seed: number): () => number {
-  let s = seed | 0;
   return () => {
     s = (s + 0x6d2b79f5) | 0;
     let t = Math.imul(s ^ (s >>> 15), 1 | s);
@@ -89,8 +77,7 @@ export function generateMapping(
   }
 
   const normalized = normalizeKey(key);
-  const seed = hashToSeed(normalized);
-  const rng = mulberry32(seed);
+  const rng = seededRng(normalized);
   const shuffled = fisherYatesShuffle(allSequences, rng);
 
   const entries: CharMapping[] = [];
