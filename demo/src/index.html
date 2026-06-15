@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Building a Real-Time Event Pipeline with Node.js</title>
+    <style>
+      /* @import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"); */
+    </style>
+    <style>
+      @font-face {
+        font-family: "Quicksand";
+        src: url("/Quicksand.ttf") format("truetype");
+        font-weight: 300 700;
+      }
+
+      @font-face {
+        font-family: "Montserrat";
+        src: url("/Montserrat.ttf") format("truetype");
+        font-weight: 300 700;
+      }
+
+      :root {
+        --text: #374151;
+        --text-light: #6b7280;
+        --heading: #111827;
+        --bg: #ffffff;
+        --bg-alt: #f9fafb;
+        --border: #e5e7eb;
+        --accent: #2563eb;
+        --accent-light: #eff6ff;
+        --code-bg: #1e293b;
+        --code-text: #e2e8f0;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Georgia, "Times New Roman", serif;
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+        color: var(--text);
+        background: var(--bg);
+        line-height: 1.75;
+        font-size: 1.125rem;
+      }
+      .site-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0 2rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 2.5rem;
+      }
+      .site-header .logo {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--heading);
+        text-decoration: none;
+      }
+      .site-header nav {
+        display: flex;
+        gap: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--text-light);
+      }
+      article {
+        font-family: "Obfuscated", Georgia, "Times New Roman", serif;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      article.ready {
+        opacity: 1;
+      }
+      article h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--heading);
+        line-height: 1.25;
+        margin-bottom: 0.75rem;
+      }
+      article h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--heading);
+        margin: 2.5rem 0 1rem;
+      }
+      article h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--heading);
+        margin: 2rem 0 0.75rem;
+      }
+      article p {
+        margin-bottom: 1.25rem;
+      }
+      article em {
+        font-style: italic;
+        color: var(--text-light);
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      article pre {
+        background: var(--code-bg);
+        color: var(--code-text);
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+        overflow-x: auto;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin: 1.25rem 0 1.5rem;
+        font-family: "Obfuscated", "Fira Code", "Cascadia Code", monospace;
+      }
+      article code {
+        font-family: "Obfuscated", "Fira Code", "Cascadia Code", monospace;
+        font-size: 0.9em;
+        background: var(--bg-alt);
+        padding: 0.15em 0.4em;
+        border-radius: 4px;
+        color: var(--heading);
+      }
+      article pre code {
+        background: none;
+        padding: 0;
+        color: inherit;
+      }
+      article blockquote {
+        border-left: 3px solid var(--accent);
+        background: var(--accent-light);
+        padding: 1rem 1.25rem;
+        margin: 1.5rem 0;
+        border-radius: 0 6px 6px 0;
+        font-style: italic;
+        color: var(--text);
+      }
+      article ul,
+      article ol {
+        margin: 0.5rem 0 1.25rem 1.5rem;
+      }
+      article li {
+        margin-bottom: 0.4rem;
+      }
+      article hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 2.5rem 0;
+      }
+      .author-box {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        padding: 1.5rem;
+        background: var(--bg-alt);
+        border-radius: 8px;
+        margin-top: 2.5rem;
+      }
+      .author-box .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+      .author-box .bio {
+        font-size: 0.9rem;
+        color: var(--text-light);
+      }
+      .author-box .name {
+        font-weight: 600;
+        color: var(--heading);
+      }
+      .footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.85rem;
+        color: var(--text-light);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="logo">the craft of code</a>
+      <nav>
+        <span>Posts</span>
+        <span>About</span>
+        <span>RSS</span>
+      </nav>
+    </header>
+
+    <article>
+      {{content}}
+
+      <div class="author-box">
+        <div class="avatar">M</div>
+        <div>
+          <div class="name">Marcus Chen</div>
+          <div class="bio">
+            Staff Engineer at Dataflow. Writing about distributed systems,
+            Node.js, and the occasional hot take on developer tooling.
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <footer class="footer">
+      2026 the craft of code. Built with too much coffee and not enough sleep.
+    </footer>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

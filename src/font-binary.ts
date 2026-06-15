@@ -56,6 +56,16 @@ interface TableRecord {
 
 function parseTableDirectory(data: Uint8Array) {
   const sfVersion = u32(data, 0);
+  if (sfVersion === 0x774f4632) {
+    throw new Error(
+      "woff2 fonts are not supported — use a .ttf or .otf font instead",
+    );
+  }
+  if (sfVersion === 0x774f4646) {
+    throw new Error(
+      "woff fonts are not supported — use a .ttf or .otf font instead",
+    );
+  }
   const numTables = u16(data, 4);
   const tables: TableRecord[] = [];
   for (let i = 0; i < numTables; i++) {
