@@ -9,8 +9,8 @@ export interface PatchFontOptions {
   key: string;
   /** Mapping options (variants, exclude, tiers, etc.) */
   mappingOptions?: MappingOptions;
-  /** Name for the patched font-family (default: "Obfuscated") */
-  patchedFamily?: string;
+  /** If set, register the patched font under this new name instead of replacing the original */
+  name?: string;
 }
 
 function findFontUrl(family: string): string | null {
@@ -32,12 +32,40 @@ function findFontUrl(family: string): string | null {
   return null;
 }
 
+function findAndRemoveFontRule(family: string): string | null {
+  for (const sheet of document.styleSheets) {
+    try {
+      const rules = sheet.cssRules;
+      for (let i = rules.length - 1; i >= 0; i--) {
+        const rule = rules[i];
+        if (
+          rule instanceof CSSFontFaceRule &&
+          rule.style.getPropertyValue("font-family").replace(/['"]/g, "") ===
+            family
+        ) {
+          const src = rule.style.getPropertyValue("src");
+          const match = src.match(/url\(["']?([^"')]+)/);
+          if (match) {
+            sheet.deleteRule(i);
+            return match[1];
+          }
+        }
+      }
+    } catch {}
+  }
+  return null;
+}
+
 export async function patchFont(options: PatchFontOptions): Promise<string> {
-  const { family, key, mappingOptions, patchedFamily = "Obfuscated" } = options;
+  const { family, key, mappingOptions, name } = options;
+  const inPlace = !name;
+  const targetFamily = name ?? family;
 
   const mapping = generateMapping(key, mappingOptions);
 
-  const fontUrl = findFontUrl(family);
+  const fontUrl = inPlace
+    ? findAndRemoveFontRule(family)
+    : findFontUrl(family);
   if (!fontUrl)
     throw new Error(`@font-face for "${family}" not found`);
 
@@ -49,21 +77,20 @@ export async function patchFont(options: PatchFontOptions): Promise<string> {
   const blob = new Blob([patched as BlobPart], { type: "font/ttf" });
   const url = URL.createObjectURL(blob);
 
-  const style = document.createElement("style");
-  style.textContent = `
-    @font-face {
-      font-family: '${patchedFamily}';
-      src: url('${url}') format('truetype');
-      font-display: block;
-      font-weight: 100 900;
+  if (inPlace) {
+    // Remove existing font faces so the patched one wins
+    for (const f of [...document.fonts]) {
+      if (f.family.replace(/['"]/g, "") === family) {
+        document.fonts.delete(f);
+      }
     }
-  `;
-  document.head.appendChild(style);
+  }
 
-  const face = new FontFace(patchedFamily, `url(${url})`, {
+  const face = new FontFace(targetFamily, `url(${url})`, {
     weight: "100 900",
   });
   await face.load();
+  document.fonts.add(face);
 
-  return patchedFamily;
+  return targetFamily;
 }
