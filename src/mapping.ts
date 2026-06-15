@@ -18,7 +18,7 @@ function normalizeKey(key: string | number): string {
   return String(key).normalize("NFKC").trim();
 }
 
-function seededRng(key: string): () => number {
+export function seededRng(key: string): () => number {
   let s = 0;
   for (let i = 0; i < key.length; i++) {
     s = Math.imul(s ^ key.charCodeAt(i), 0x9e3779b1);

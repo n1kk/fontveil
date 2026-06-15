@@ -60,15 +60,19 @@ describe('round-trip', () => {
     expect(descramble('', mapping)).toBe('');
   });
 
-  it('with variants, same text scrambles differently each time', () => {
+  it('with variants, scramble is deterministic', () => {
     const vm = generateMapping('variant-test', { variants: 3 });
     const text = 'aaaaaaaaaa';
-    const results = new Set<string>();
-    for (let i = 0; i < 20; i++) {
-      results.add(scramble(text, vm));
+    const first = scramble(text, vm);
+    for (let i = 0; i < 10; i++) {
+      expect(scramble(text, vm)).toBe(first);
     }
-    // With 3 variants for 'a' and 10 chars, should produce multiple different outputs
-    expect(results.size).toBeGreaterThan(1);
+  });
+
+  it('with variants, different keys produce different scrambles', () => {
+    const vm1 = generateMapping('key-1', { variants: 3 });
+    const vm2 = generateMapping('key-2', { variants: 3 });
+    expect(scramble('aaaaaaaaaa', vm1)).not.toBe(scramble('aaaaaaaaaa', vm2));
   });
 
   it('with variants, descramble still recovers original', () => {

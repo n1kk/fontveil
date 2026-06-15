@@ -1,6 +1,8 @@
+import { seededRng } from "./mapping.js";
 import type { ObfuscationMapping } from "./types.js";
 
 export function scramble(text: string, mapping: ObfuscationMapping): string {
+  const rng = mapping.variants > 1 ? seededRng(mapping.key + ":scramble") : null;
   let result = "";
   for (const char of text) {
     const seqs = mapping.charToScrambled.get(char);
@@ -10,7 +12,7 @@ export function scramble(text: string, mapping: ObfuscationMapping): string {
     }
     result += seqs.length === 1
       ? seqs[0]
-      : seqs[Math.floor(Math.random() * seqs.length)];
+      : seqs[Math.floor(rng!() * seqs.length)];
   }
   return result;
 }
