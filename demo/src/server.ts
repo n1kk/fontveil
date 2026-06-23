@@ -102,6 +102,6 @@ function escapeAttr(s: string): string {
 }
 
 init();
-serve({ fetch: app.fetch, port: PORT }, () => {
-  console.log(`obfuscai demo running at http://localhost:${PORT}`);
+serve({ fetch: app.fetch, hostname: "0.0.0.0", port: PORT }, () => {
+  console.log(`obfuscai demo running at http://0.0.0.0:${PORT}`);
 });

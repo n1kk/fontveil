@@ -45,6 +45,10 @@ export default defineConfig({
   root: "src",
   publicDir: path.join(__dirname, "public"),
   plugins: [obfuscaiPlugin()],
+  server: {
+    host: true,
+    allowedHosts: true,
+  },
   build: {
     outDir: path.join(__dirname, "dist"),
   },
