@@ -3,21 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Building a Real-Time Event Pipeline with Node.js</title>
+    <title>Text You Can Read, But Bots Cannot</title>
     <style>
       /* @import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"); */
     </style>
     <style>
       @font-face {
-        font-family: "Quicksand";
-        src: url("/Quicksand.ttf") format("truetype");
-        font-weight: 300 700;
-      }
-
-      @font-face {
-        font-family: "Montserrat";
-        src: url("/Montserrat.ttf") format("truetype");
-        font-weight: 300 700;
+        font-family: "Fragment Mono";
+        src: url("/FragmentMono.ttf") format("truetype");
+        font-weight: 400;
       }
 
       :root {
@@ -68,7 +62,7 @@
         color: var(--text-light);
       }
       article {
-        font-family: "Obfuscated", Georgia, "Times New Roman", serif;
+        font-family: "Obfuscated", "Fragment Mono", monospace;
         opacity: 0;
         transition: opacity 0.3s ease;
       }
@@ -117,10 +111,10 @@
         font-size: 0.875rem;
         line-height: 1.6;
         margin: 1.25rem 0 1.5rem;
-        font-family: "Obfuscated", "Fira Code", "Cascadia Code", monospace;
+        font-family: "Obfuscated", "Fragment Mono", monospace;
       }
       article code {
-        font-family: "Obfuscated", "Fira Code", "Cascadia Code", monospace;
+        font-family: "Obfuscated", "Fragment Mono", monospace;
         font-size: 0.9em;
         background: var(--bg-alt);
         padding: 0.15em 0.4em;
@@ -152,6 +146,14 @@
         border: none;
         border-top: 1px solid var(--border);
         margin: 2.5rem 0;
+      }
+      .reveal-raw {
+        color: var(--accent);
+        border-bottom: 1px dashed var(--accent);
+        cursor: pointer;
+      }
+      article:has(.reveal-raw:hover) {
+        font-family: "Fragment Mono", monospace !important;
       }
       .author-box {
         display: flex;
@@ -195,7 +197,7 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="logo">the craft of code</a>
+      <a class="logo">Alex is the king!</a>
       <nav>
         <span>Posts</span>
         <span>About</span>

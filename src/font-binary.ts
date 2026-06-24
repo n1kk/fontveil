@@ -160,7 +160,12 @@ function parseCmapFmt12(
   return map;
 }
 
-// ── GSUB builder (Type 4 ligature substitution) ─────────────
+// ── GSUB builder ───────────────────────────────────────────
+
+interface SingleRule {
+  inputGlyph: number;
+  outputGlyph: number;
+}
 
 interface LigatureRule {
   firstGlyph: number;
@@ -168,17 +173,13 @@ interface LigatureRule {
   outputGlyph: number;
 }
 
-function buildGsub(rules: LigatureRule[]): Uint8Array {
-  const groups = new Map<number, LigatureRule[]>();
-  for (const r of rules) {
-    let list = groups.get(r.firstGlyph);
-    if (!list) {
-      list = [];
-      groups.set(r.firstGlyph, list);
-    }
-    list.push(r);
-  }
-  const firstGlyphs = [...groups.keys()].sort((a, b) => a - b);
+function buildGsub(
+  singleRules: SingleRule[],
+  ligRules: LigatureRule[],
+): Uint8Array {
+  const hasSingle = singleRules.length > 0;
+  const hasLig = ligRules.length > 0;
+  const lookupCount = (hasSingle ? 1 : 0) + (hasLig ? 1 : 0);
 
   const w = new W();
 
@@ -221,62 +222,109 @@ function buildGsub(rules: LigatureRule[]): Uint8Array {
   const featOff = w.pos;
   w.patch16(pFeature, featOff - flOff);
   w.u16(0);
-  w.u16(1);
-  w.u16(0);
+  w.u16(lookupCount);
+  for (let i = 0; i < lookupCount; i++) w.u16(i);
 
   // LookupList
   const llOff = w.pos;
   w.patch16(pLookupList, llOff);
-  w.u16(1);
-  const pLookup = w.pos;
-  w.u16(0);
-
-  // Lookup (type 4)
-  const luOff = w.pos;
-  w.patch16(pLookup, luOff - llOff);
-  w.u16(4);
-  w.u16(0);
-  w.u16(1);
-  const pSubtable = w.pos;
-  w.u16(0);
-
-  // LigatureSubst subtable (format 1)
-  const stOff = w.pos;
-  w.patch16(pSubtable, stOff - luOff);
-  w.u16(1);
-  const pCoverage = w.pos;
-  w.u16(0);
-  w.u16(firstGlyphs.length);
-  const pSetOffs: number[] = [];
-  for (let i = 0; i < firstGlyphs.length; i++) {
-    pSetOffs.push(w.pos);
+  w.u16(lookupCount);
+  const pLookups: number[] = [];
+  for (let i = 0; i < lookupCount; i++) {
+    pLookups.push(w.pos);
     w.u16(0);
   }
 
-  // LigatureSets
-  for (let i = 0; i < firstGlyphs.length; i++) {
-    const setOff = w.pos;
-    w.patch16(pSetOffs[i], setOff - stOff);
-    const ligs = groups.get(firstGlyphs[i])!;
-    w.u16(ligs.length);
-    const pLigOffs: number[] = [];
-    for (let j = 0; j < ligs.length; j++) {
-      pLigOffs.push(w.pos);
-      w.u16(0);
-    }
-    for (let j = 0; j < ligs.length; j++) {
-      w.patch16(pLigOffs[j], w.pos - setOff);
-      w.u16(ligs[j].outputGlyph);
-      w.u16(ligs[j].restGlyphs.length + 1);
-      for (const g of ligs[j].restGlyphs) w.u16(g);
-    }
+  let lookupIdx = 0;
+
+  // Single Substitution lookup (Type 1, Format 2)
+  if (hasSingle) {
+    const sorted = [...singleRules].sort(
+      (a, b) => a.inputGlyph - b.inputGlyph,
+    );
+
+    const luOff = w.pos;
+    w.patch16(pLookups[lookupIdx], luOff - llOff);
+    w.u16(1); // lookupType = 1 (Single)
+    w.u16(0); // lookupFlag
+    w.u16(1); // subtableCount
+    const pSubtable = w.pos;
+    w.u16(0);
+
+    const stOff = w.pos;
+    w.patch16(pSubtable, stOff - luOff);
+    w.u16(2); // substFormat = 2
+    const pCoverage = w.pos;
+    w.u16(0);
+    w.u16(sorted.length); // glyphCount
+    for (const r of sorted) w.u16(r.outputGlyph);
+
+    // Coverage (Format 1)
+    w.patch16(pCoverage, w.pos - stOff);
+    w.u16(1);
+    w.u16(sorted.length);
+    for (const r of sorted) w.u16(r.inputGlyph);
+
+    lookupIdx++;
   }
 
-  // Coverage table (format 1)
-  w.patch16(pCoverage, w.pos - stOff);
-  w.u16(1);
-  w.u16(firstGlyphs.length);
-  for (const g of firstGlyphs) w.u16(g);
+  // Ligature Substitution lookup (Type 4)
+  if (hasLig) {
+    const groups = new Map<number, LigatureRule[]>();
+    for (const r of ligRules) {
+      let list = groups.get(r.firstGlyph);
+      if (!list) {
+        list = [];
+        groups.set(r.firstGlyph, list);
+      }
+      list.push(r);
+    }
+    const firstGlyphs = [...groups.keys()].sort((a, b) => a - b);
+
+    const luOff = w.pos;
+    w.patch16(pLookups[lookupIdx], luOff - llOff);
+    w.u16(4); // lookupType = 4 (Ligature)
+    w.u16(0);
+    w.u16(1);
+    const pSubtable = w.pos;
+    w.u16(0);
+
+    const stOff = w.pos;
+    w.patch16(pSubtable, stOff - luOff);
+    w.u16(1);
+    const pCoverage = w.pos;
+    w.u16(0);
+    w.u16(firstGlyphs.length);
+    const pSetOffs: number[] = [];
+    for (let i = 0; i < firstGlyphs.length; i++) {
+      pSetOffs.push(w.pos);
+      w.u16(0);
+    }
+
+    for (let i = 0; i < firstGlyphs.length; i++) {
+      const setOff = w.pos;
+      w.patch16(pSetOffs[i], setOff - stOff);
+      const ligs = groups.get(firstGlyphs[i])!;
+      w.u16(ligs.length);
+      const pLigOffs: number[] = [];
+      for (let j = 0; j < ligs.length; j++) {
+        pLigOffs.push(w.pos);
+        w.u16(0);
+      }
+      for (let j = 0; j < ligs.length; j++) {
+        w.patch16(pLigOffs[j], w.pos - setOff);
+        w.u16(ligs[j].outputGlyph);
+        w.u16(ligs[j].restGlyphs.length + 1);
+        for (const g of ligs[j].restGlyphs) w.u16(g);
+      }
+    }
+
+    // Coverage (Format 1)
+    w.patch16(pCoverage, w.pos - stOff);
+    w.u16(1);
+    w.u16(firstGlyphs.length);
+    for (const g of firstGlyphs) w.u16(g);
+  }
 
   w.pad4();
   return w.bytes();
@@ -437,29 +485,34 @@ export function createObfuscatedFont(
   if (!cmapRec) throw new Error("Font has no cmap table");
   const charToGlyph = parseCmap(data, cmapRec.offset);
 
-  const rules: LigatureRule[] = [];
+  const singleRules: SingleRule[] = [];
+  const ligRules: LigatureRule[] = [];
+
   for (const entry of mapping.entries) {
     const outGlyph = charToGlyph.get(entry.char.codePointAt(0)!);
     if (!outGlyph)
       throw new Error(`Font missing glyph for '${entry.char}'`);
 
     for (const seq of entry.scrambledSeqs) {
-      const [first, ...rest] = [...seq];
-      const firstGlyph = charToGlyph.get(first.codePointAt(0)!);
+      const chars = [...seq];
+      const firstGlyph = charToGlyph.get(chars[0].codePointAt(0)!);
       if (!firstGlyph)
-        throw new Error(`Font missing glyph for '${first}'`);
+        throw new Error(`Font missing glyph for '${chars[0]}'`);
 
-      const restGlyphs = rest.map((ch) => {
-        const g = charToGlyph.get(ch.codePointAt(0)!);
-        if (!g) throw new Error(`Font missing glyph for '${ch}'`);
-        return g;
-      });
-
-      rules.push({ firstGlyph, restGlyphs, outputGlyph: outGlyph });
+      if (chars.length === 1) {
+        singleRules.push({ inputGlyph: firstGlyph, outputGlyph: outGlyph });
+      } else {
+        const restGlyphs = chars.slice(1).map((ch) => {
+          const g = charToGlyph.get(ch.codePointAt(0)!);
+          if (!g) throw new Error(`Font missing glyph for '${ch}'`);
+          return g;
+        });
+        ligRules.push({ firstGlyph, restGlyphs, outputGlyph: outGlyph });
+      }
     }
   }
 
-  const gsubData = buildGsub(rules);
+  const gsubData = buildGsub(singleRules, ligRules);
   return rebuildFont(data, new Map([["GSUB", gsubData]]));
 }
 

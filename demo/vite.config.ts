@@ -7,7 +7,11 @@ import { scramble } from "../src/scrambler.ts";
 import type { ObfuscationMapping } from "../src/types.ts";
 
 const SEED = "obfuscai-default-seed";
-const MAPPING_OPTIONS = { variants: 3, exclude: [" ", "\n", "\t"] };
+const MAPPING_OPTIONS = {
+  seqLength: 1,
+  charset: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split(""),
+  scrambleAlphabet: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+};
 
 function obfuscaiPlugin(): Plugin {
   const mapping = generateMapping(SEED, MAPPING_OPTIONS);

@@ -1,10 +1,14 @@
 import { patchFont } from "obfuscai";
 
 patchFont({
-  family: "Montserrat",
+  family: "Fragment Mono",
   key: "obfuscai-default-seed",
   name: "Obfuscated",
-  mappingOptions: { variants: 3, exclude: [" ", "\n", "\t"] },
+  mappingOptions: {
+    seqLength: 1,
+    charset: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split(""),
+    scrambleAlphabet: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+  },
 }).then(() => {
   document.querySelector("article")?.classList.add("ready");
 });
