@@ -472,7 +472,134 @@ function rebuildFont(
   return out;
 }
 
+// ── name table parsing ─────────────────────────────────────
+
+function parseNameRecords(
+  data: Uint8Array,
+  tableOffset: number,
+): Map<number, string> {
+  const count = u16(data, tableOffset + 2);
+  const storageOff = tableOffset + u16(data, tableOffset + 4);
+  const names = new Map<number, string>();
+
+  for (let i = 0; i < count; i++) {
+    const rec = tableOffset + 6 + i * 12;
+    const platformID = u16(data, rec);
+    const encodingID = u16(data, rec + 2);
+    const nameID = u16(data, rec + 6);
+    const length = u16(data, rec + 8);
+    const offset = u16(data, rec + 10);
+
+    // Prefer Windows Unicode BMP (3,1) or Unicode (0,*)
+    const isUnicode =
+      (platformID === 3 && encodingID === 1) ||
+      (platformID === 0);
+
+    if (!isUnicode && names.has(nameID)) continue;
+
+    const start = storageOff + offset;
+    let value: string;
+
+    if (platformID === 3 || platformID === 0) {
+      // UTF-16BE
+      const chars: string[] = [];
+      for (let j = 0; j < length; j += 2) {
+        chars.push(String.fromCharCode(u16(data, start + j)));
+      }
+      value = chars.join("");
+    } else {
+      // Latin-1
+      const chars: string[] = [];
+      for (let j = 0; j < length; j++) {
+        chars.push(String.fromCharCode(data[start + j]));
+      }
+      value = chars.join("");
+    }
+
+    names.set(nameID, value);
+  }
+
+  return names;
+}
+
+// ── OS/2 fsType parsing ────────────────────────────────────
+
+function parseFsType(data: Uint8Array, tableOffset: number): number {
+  return u16(data, tableOffset + 8);
+}
+
 // ── Public API ──────────────────────────────────────────────
+
+export interface FontLicenseInfo {
+  /** Copyright notice (name ID 0) */
+  copyright: string | null;
+  /** License description text (name ID 13) */
+  license: string | null;
+  /** License URL (name ID 14) */
+  licenseUrl: string | null;
+  /** OS/2 fsType embedding flags */
+  fsType: number | null;
+  /** Whether fsType restricts embedding/modification */
+  modificationRestricted: boolean;
+  /** Reserved Font Names found in license text */
+  reservedFontNames: string[];
+  /** Whether modification appears permitted based on detected info */
+  modificationPermitted: boolean;
+}
+
+export function readFontLicenseInfo(fontData: Uint8Array): FontLicenseInfo {
+  const data =
+    fontData instanceof Uint8Array ? fontData : new Uint8Array(fontData);
+  const { tables } = parseTableDirectory(data);
+
+  // Parse name table
+  const nameRec = tables.find((t) => t.tag === "name");
+  const names = nameRec ? parseNameRecords(data, nameRec.offset) : new Map();
+
+  const copyright = names.get(0) ?? null;
+  const license = names.get(13) ?? null;
+  const licenseUrl = names.get(14) ?? null;
+
+  // Parse OS/2 fsType
+  const os2Rec = tables.find((t) => t.tag === "OS/2");
+  const fsType = os2Rec ? parseFsType(data, os2Rec.offset) : null;
+
+  // fsType 0x0002 = Restricted License embedding
+  const modificationRestricted = fsType !== null && (fsType & 0x0002) !== 0;
+
+  // Detect Reserved Font Names from copyright and license text
+  const reservedFontNames: string[] = [];
+  const licenseText = [copyright, license].filter(Boolean).join("\n");
+  const rfnPatterns = [
+    /["']([^"']+)["']\s+is a Reserved Font Name/gi,
+    /Reserved Font Names?\s+["']([^"']+)["']/gi,
+    /with Reserved Font Names?\s+["']([^"']+)["']/gi,
+  ];
+  for (const pattern of rfnPatterns) {
+    let match;
+    while ((match = pattern.exec(licenseText)) !== null) {
+      if (!reservedFontNames.includes(match[1])) {
+        reservedFontNames.push(match[1]);
+      }
+    }
+  }
+
+  // Determine if modification appears permitted
+  const modificationPermitted =
+    !modificationRestricted &&
+    (license === null ||
+      /Open Font License|OFL|Apache/i.test(license));
+
+  return {
+    copyright,
+    license,
+    licenseUrl,
+    fsType,
+    modificationRestricted,
+    reservedFontNames,
+    modificationPermitted,
+  };
+}
 
 export function createObfuscatedFont(
   fontData: Uint8Array,
