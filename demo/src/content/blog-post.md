@@ -2,9 +2,9 @@
 
 #### _Prevent bots, AI Agents and scrapers from accessing your content._
 
-<span class="reveal-raw">Hover here</span> to see the actual source text.
-
 Right now you are reading text that looks perfectly normal. Sentences, paragraphs, punctuation, all exactly as you would expect on any blog post. But if you inspect the HTML source, you will find something strange: the characters in the markup are scrambled. They do not match what you see on screen. This is not a screenshot or an image. It is real text rendered by your browser. The difference is that a custom font is doing the heavy lifting, silently translating scrambled sequences back into readable characters through OpenType ligature substitution. Open DevTools to see that the actual source is obfuscated.
+
+<span class="reveal-raw">Hover here</span> to see the actual source text.
 
 This technique is not encryption and should not be treated as a security boundary. A determined adversary with access to the font file can reverse the mapping. The goal is to raise the cost of automated extraction high enough that scraping your content is no longer the path of least resistance. For most bots and crawlers, scrambled source text with no obvious decoding path is enough.
 
