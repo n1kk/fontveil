@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Text You Can Read, But Bots Cannot</title>
     <style>
-      /* @import url("https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap"); */
-    </style>
-    <style>
       @font-face {
         font-family: "Fragment Mono";
         src: url("/FragmentMono.ttf") format("truetype");
@@ -25,6 +22,20 @@
         --accent-light: #eff6ff;
         --code-bg: #1e293b;
         --code-text: #e2e8f0;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --text: #d1d5db;
+          --text-light: #9ca3af;
+          --heading: #f3f4f6;
+          --bg: #111827;
+          --bg-alt: #1f2937;
+          --border: #374151;
+          --accent: #60a5fa;
+          --accent-light: #1e3a5f;
+          --code-bg: #0d1117;
+          --code-text: #e2e8f0;
+        }
       }
       * {
         margin: 0;
@@ -69,23 +80,29 @@
       article.ready {
         opacity: 1;
       }
+      article h1,
+      article h2,
+      article h3,
+      article h4,
+      article h5,
+      article h6 {
+        font-family: "Fragment Mono", monospace;
+        color: var(--heading);
+      }
       article h1 {
         font-size: 2rem;
         font-weight: 800;
-        color: var(--heading);
         line-height: 1.25;
         margin-bottom: 0.75rem;
       }
       article h2 {
         font-size: 1.4rem;
         font-weight: 700;
-        color: var(--heading);
         margin: 2.5rem 0 1rem;
       }
       article h3 {
         font-size: 1.15rem;
         font-weight: 600;
-        color: var(--heading);
         margin: 2rem 0 0.75rem;
       }
       article p {
@@ -196,34 +213,7 @@
     </style>
   </head>
   <body>
-    <header class="site-header">
-      <a class="logo">The blog!</a>
-      <nav>
-        <span>Posts</span>
-        <span>About</span>
-        <span>RSS</span>
-      </nav>
-    </header>
-
-    <article>
-      {{content}}
-
-      <div class="author-box">
-        <div class="avatar">M</div>
-        <div>
-          <div class="name">Marcus Chen</div>
-          <div class="bio">
-            Staff Engineer at Dataflow. Writing about distributed systems,
-            Node.js, and the occasional hot take on developer tooling.
-          </div>
-        </div>
-      </div>
-    </article>
-
-    <footer class="footer">
-      2026 the craft of code. Built with too much coffee and not enough sleep.
-    </footer>
-
+    <article>{{content}}</article>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

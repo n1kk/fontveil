@@ -19,8 +19,18 @@ function fontveilPlugin(): Plugin {
   const mapping = generateMapping(SEED, MAPPING_OPTIONS);
 
   function scrambleMarkdown(md: string, m: ObfuscationMapping): string {
+    const skipTokens = new Set<object>();
+    function collectAll(token: any) {
+      skipTokens.add(token);
+      for (const child of token.tokens ?? []) collectAll(child);
+    }
     const instance = new Marked({
       walkTokens(token) {
+        if (token.type === "heading") {
+          collectAll(token);
+          return;
+        }
+        if (skipTokens.has(token)) return;
         if (
           token.type === "text" ||
           token.type === "escape" ||
@@ -49,6 +59,7 @@ function fontveilPlugin(): Plugin {
 
 export default defineConfig({
   root: "src",
+  base: "/fontveil/",
   publicDir: path.join(__dirname, "public"),
   plugins: [fontveilPlugin()],
   server: {

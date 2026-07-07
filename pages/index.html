@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Text You Can Read, But Bots Cannot</title>
+    <style>
+      @font-face {
+        font-family: "Fragment Mono";
+        src: url("/fontveil/FragmentMono.ttf") format("truetype");
+        font-weight: 400;
+      }
+
+      :root {
+        --text: #374151;
+        --text-light: #6b7280;
+        --heading: #111827;
+        --bg: #ffffff;
+        --bg-alt: #f9fafb;
+        --border: #e5e7eb;
+        --accent: #2563eb;
+        --accent-light: #eff6ff;
+        --code-bg: #1e293b;
+        --code-text: #e2e8f0;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --text: #d1d5db;
+          --text-light: #9ca3af;
+          --heading: #f3f4f6;
+          --bg: #111827;
+          --bg-alt: #1f2937;
+          --border: #374151;
+          --accent: #60a5fa;
+          --accent-light: #1e3a5f;
+          --code-bg: #0d1117;
+          --code-text: #e2e8f0;
+        }
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Georgia, "Times New Roman", serif;
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 4rem;
+        color: var(--text);
+        background: var(--bg);
+        line-height: 1.75;
+        font-size: 1.125rem;
+      }
+      .site-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0 2rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 2.5rem;
+      }
+      .site-header .logo {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--heading);
+        text-decoration: none;
+      }
+      .site-header nav {
+        display: flex;
+        gap: 1.5rem;
+        font-size: 0.9rem;
+        color: var(--text-light);
+      }
+      article {
+        font-family: "Obfuscated", "Fragment Mono", monospace;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      article.ready {
+        opacity: 1;
+      }
+      article h1,
+      article h2,
+      article h3,
+      article h4,
+      article h5,
+      article h6 {
+        font-family: "Fragment Mono", monospace;
+        color: var(--heading);
+      }
+      article h1 {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1.25;
+        margin-bottom: 0.75rem;
+      }
+      article h2 {
+        font-size: 1.4rem;
+        font-weight: 700;
+        margin: 2.5rem 0 1rem;
+      }
+      article h3 {
+        font-size: 1.15rem;
+        font-weight: 600;
+        margin: 2rem 0 0.75rem;
+      }
+      article p {
+        margin-bottom: 1.25rem;
+      }
+      article em {
+        font-style: italic;
+        color: var(--text-light);
+      }
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      article pre {
+        background: var(--code-bg);
+        color: var(--code-text);
+        border-radius: 8px;
+        padding: 1.25rem 1.5rem;
+        overflow-x: auto;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin: 1.25rem 0 1.5rem;
+        font-family: "Obfuscated", "Fragment Mono", monospace;
+      }
+      article code {
+        font-family: "Obfuscated", "Fragment Mono", monospace;
+        font-size: 0.9em;
+        background: var(--bg-alt);
+        padding: 0.15em 0.4em;
+        border-radius: 4px;
+        color: var(--heading);
+      }
+      article pre code {
+        background: none;
+        padding: 0;
+        color: inherit;
+      }
+      article blockquote {
+        border-left: 3px solid var(--accent);
+        background: var(--accent-light);
+        padding: 1rem 1.25rem;
+        margin: 1.5rem 0;
+        border-radius: 0 6px 6px 0;
+        font-style: italic;
+        color: var(--text);
+      }
+      article ul,
+      article ol {
+        margin: 0.5rem 0 1.25rem 1.5rem;
+      }
+      article li {
+        margin-bottom: 0.4rem;
+      }
+      article hr {
+        border: none;
+        border-top: 1px solid var(--border);
+        margin: 2.5rem 0;
+      }
+      .reveal-raw {
+        color: var(--accent);
+        border-bottom: 1px dashed var(--accent);
+        cursor: pointer;
+      }
+      article:has(.reveal-raw:hover) {
+        font-family: "Fragment Mono", monospace !important;
+      }
+      .author-box {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+        padding: 1.5rem;
+        background: var(--bg-alt);
+        border-radius: 8px;
+        margin-top: 2.5rem;
+      }
+      .author-box .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+      }
+      .author-box .bio {
+        font-size: 0.9rem;
+        color: var(--text-light);
+      }
+      .author-box .name {
+        font-weight: 600;
+        color: var(--heading);
+      }
+      .footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.85rem;
+        color: var(--text-light);
+        text-align: center;
+      }
+    </style>
+    <script type="module" crossorigin src="/fontveil/assets/index-Bnw97vc3.js"></script>
+  </head>
+  <body>
+    <article><h1>Font Veil</h1>
+<h4><em>Prevent bots, AI Agents and scrapers from accessing your content.</em></h4>
+<p><span class="reveal-raw">3voG7 rG7G</span> uv pGG urG HmuXH4 pvX7mG uGju.</p>
+<p>UJ8ru LvP dvX H7G 7GHwJL8 uGju urHu 4vvOp 9G7qGmu4d Lv7hH4. 2GLuGLmGp, 9H7H87H9rp, 9XLmuXHuJvL, H44 GjHmu4d Hp dvX PvX4w Gj9Gmu vL HLd g4v8 9vpu. sXu Jq dvX JLp9Gmu urG 30Ft pvX7mG, dvX PJ44 qJLw pvhGurJL8 pu7HL8G: urG mrH7HmuG7p JL urG hH7OX9 H7G pm7Hhg4Gw. 0rGd wv Lvu hHumr PrHu dvX pGG vL pm7GGL. 0rJp Jp Lvu H pm7GGLprvu v7 HL JhH8G. nu Jp 7GH4 uGju 7GLwG7Gw gd dvX7 g7vPpG7. 0rG wJqqG7GLmG Jp urHu H mXpuvh qvLu Jp wvJL8 urG rGHod 4JquJL8, pJ4GLu4d u7HLp4HuJL8 pm7Hhg4Gw pGiXGLmGp gHmO JLuv 7GHwHg4G mrH7HmuG7p ur7vX8r I9GL0d9G 4J8HuX7G pXgpuJuXuJvL. I9GL EGo0vv4p uv pGG urHu urG HmuXH4 pvX7mG Jp vgqXpmHuGw.</p>
+<p>0rJp uGmrLJiXG Jp Lvu GLm7d9uJvL HLw prvX4w Lvu gG u7GHuGw Hp H pGmX7Jud gvXLwH7d. a wGuG7hJLGw HwoG7pH7d PJur HmmGpp uv urG qvLu qJ4G mHL 7GoG7pG urG hH99JL8. 0rG 8vH4 Jp uv 7HJpG urG mvpu vq HXuvhHuGw Gju7HmuJvL rJ8r GLvX8r urHu pm7H9JL8 dvX7 mvLuGLu Jp Lv 4vL8G7 urG 9Hur vq 4GHpu 7GpJpuHLmG. Cv7 hvpu gvup HLw m7HP4G7p, pm7Hhg4Gw pvX7mG uGju PJur Lv vgoJvXp wGmvwJL8 9Hur Jp GLvX8r.</p>
+<h2>Why Would You Want This?</h2>
+<p>0rG PGg rHp H pm7H9JL8 97vg4Gh. svup m7HP4 9H8Gp, Gju7Hmu uGju, HLw 7G9X79vpG Ju PJurvXu Huu7JgXuJvL, mvLpGLu, v7 mvh9GLpHuJvL. tH78G 4HL8XH8G hvwG4p u7HJL vL pm7H9Gw mvLuGLu. an-9vPG7Gw pGH7mr GL8JLGp pXhhH7JfG H7uJm4Gp HLw pG7oG HLpPG7p wJ7Gmu4d, 7GhvoJL8 urG JLmGLuJoG qv7 XpG7p uv oJpJu urG v7J8JLH4 pvX7mG.</p>
+<p>0rG7G H7G pGoG7H4 pmGLH7Jvp PrG7G vgqXpmHuJvL hHOGp pGLpG:</p>
+<ul>
+<li><strong>T7vuGmuJL8 v7J8JLH4 mvLuGLu.</strong> c7JuG7p, xvX7LH4Jpup, HLw 7GpGH7mrG7p Prv PHLu urGJ7 Pv7O 7GHw gd rXhHLp, Lvu rH7oGpuGw gd hHmrJLGp.</li>
+<li><strong>T7GpG7oJL8 pGH7mr u7HqqJm.</strong> nq H pGH7mr GL8JLG mHLLvu Gju7Hmu dvX7 H7uJm4G gvwd, Ju mHLLvu 8GLG7HuG H pXhhH7d urHu 7G94HmGp urG m4JmO. tGHoG dvX7 rGHw4JLGp HLw hGuHwHuH pGH7mrHg4G, vgqXpmHuG urG 7Gpu.</li>
+<li><strong>nLuG44GmuXH4 97v9G7ud.</strong> 0GmrLJmH4 wvmXhGLuHuJvL, 97v97JGuH7d 7GpGH7mr, v7 m7GHuJoG Pv7O urHu dvX PHLu oJpJg4G uv HXurGLuJmHuGw XpG7p gXu JLoJpJg4G uv HXuvhHuGw Gju7HmuJvL.</li>
+<li><strong>2G4GmuJoG wJpm4vpX7G.</strong> 2rvP uGHpG7p v7 rGHw4JLGp JL 94HJL uGju qv7 JLwGjJL8 PrJ4G OGG9JL8 97GhJXh mvLuGLu gGrJLw urG vgqXpmHuJvL 4HdG7.</li>
+</ul>
+<p>0rG OGd JLpJ8ru Jp urHu dvX mHL gG pG4GmuJoG. 3GHwJL8p, hGuH wGpm7J9uJvLp, HLw pu7XmuX7Gw wHuH mHL 7GhHJL JL 94HJL uGju qv7 pGH7mr GL8JLGp uv JLwGj. IL4d urG gvwd mvLuGLu 8Gup pm7Hhg4Gw. kvX OGG9 wJpmvoG7HgJ4Jud PrJ4G 97vuGmuJL8 urG pXgpuHLmG.</p>
+<h2>How It Works</h2>
+<p>0rG uGmrLJiXG 7G4JGp vL I9GL0d9G qvLu 4J8HuX7Gp, urG pHhG hGmrHLJph urHu uX7Lp &quot;q&quot; qv44vPGw gd &quot;J&quot; JLuv urG xvJLGw &quot;qJ&quot; 84d9r JL hHLd ud9GqHmGp.</p>
+<p>3G7G Jp urG 97vmGpp:</p>
+<ul>
+<li><p><strong>6GLG7HuG H hH99JL8.</strong> a pGGw OGd wGuG7hJLJpuJmH44d 8GLG7HuGp H hH99JL8 gGuPGGL GHmr 7GHwHg4G mrH7HmuG7 uv vLG v7 hv7G pm7Hhg4Gw pGiXGLmGp. Cv7 GjHh94G, urG 4GuuG7 &quot;G&quot; hJ8ru hH9 uv &quot;h&quot; v7 &quot;ij&quot; v7 &quot;Ll?&quot;.</p>
+</li>
+<li><p><strong>2m7Hhg4G urG mvLuGLu.</strong> sGqv7G pG7oJL8 urG 9H8G, GHmr mrH7HmuG7 JL urG uGju Jp 7G94HmGw PJur vLG vq Jup pm7Hhg4Gw pGiXGLmGp. 0rG 30Ft pvX7mG LvP mvLuHJLp vL4d urGpG pm7Hhg4Gw pGiXGLmGp.</p>
+</li>
+<li><p><strong>THumr urG qvLu.</strong> a mXpuvh qvLu Jp 8GLG7HuGw urHu mvLuHJLp 4J8HuX7G 7X4Gp 7GoG7pJL8 urG hH99JL8. crGL urG g7vPpG7 GLmvXLuG7p &quot;ij&quot;, urG qvLu&#39;p 4J8HuX7G uHg4G pHdp &quot;7GLwG7 urJp Hp urG 84d9r qv7 G&quot;. 0rG g7vPpG7 wvGp urJp pXgpuJuXuJvL Hu 7GLwG7 uJhG, JL urG uGju prH9JL8 GL8JLG, mvh94GuG4d u7HLp9H7GLu4d.</p>
+</li>
+<li><p><strong>2G7oG urG 9H8G.</strong> 0rG pm7Hhg4Gw 30Ft Jp pGLu uv urG g7vPpG7 H4vL8 PJur urG 9HumrGw qvLu. 0rG g7vPpG7 7GLwG7p urG uGju Lv7hH44d. zpG7p pGG 7GHwHg4G mvLuGLu. svup pGG pm7Hhg4Gw mrH7HmuG7 pGiXGLmGp.</p>
+</li>
+</ul>
+<p>0rG qvLu mHL gG 8GLG7HuGw HLw pG7oGw uv8GurG7 PJur urG 9H8G, HovJwJL8 HLd LGGw vq 1HoH2m7J9u, gXu Ju mHL H4pv gG 9HumrGw Hu 7XLuJhG PJur 12 HquG7 urG 9H8G 4vHwp, uu&#39;p dvX7 mrvJmG. nL HLd mHpG urG pvX7mG puHdp mJ9rG7Gw.</p>
+<h2>Variable-Length Sequences</h2>
+<p>a pJh94G vLG-uv-vLG mrH7HmuG7 hH99JL8 PvX4w gG u7JoJH4 uv 7GoG7pG PJur q7GiXGLmd HLH4dpJp. a uPv-mrH7HmuG7 hH99JL8 Jp gGuuG7 gXu puJ44 rHp H qJjGw 9HuuG7L. 0rG pdpuGh pX99v7up oH7JHg4G-4GL8ur pGiXGLmGp XpJL8 H 97GqJj-q7GG GLmvwJL8, pJhJ4H7 JL mvLmG9u uv 3XqqhHL mvwJL8 v7 z0C-B.</p>
+<p>0rG H49rHgGu Jp 9H7uJuJvLGw JLuv uJG7p. a qGP 4GuuG7p H7G 7GpG7oGw qv7 pJL84G-mrH7HmuG7 pGiXGLmGp, HLvurG7 87vX9 pG7oGp Hp 97GqJjGp qv7 uPv-mrH7HmuG7 pGiXGLmGp, HLw urG 7Gpu HLmrv7 ur7GG-mrH7HmuG7 pGiXGLmGp. sGmHXpG urG 97GqJj pGup wv Lvu voG74H9, urG wGmvwG7 mHL XLHhgJ8XvXp4d 9H7pG urG pm7Hhg4Gw uGju PJurvXu wG4JhJuG7p. 0rJp oH7JHg4G 4GL8ur H4pv mrHL8Gp urG oJpXH4 wGLpJud vq urG pm7Hhg4Gw vXu9Xu, hHOJL8 9HuuG7L wGuGmuJvL rH7wG7.</p>
+<p>FX4uJ94G oH7JHLup 9G7 mrH7HmuG7 Hww HLvurG7 4HdG7. 0rG 4GuuG7 &quot;H&quot; hJ8ru rHoG ur7GG wJqqG7GLu pm7Hhg4Gw 7G97GpGLuHuJvLp. 0rG GLmvwG7 9JmOp HhvL8 urGh wGuG7hJLJpuJmH44d gHpGw vL H pGGwGw 7HLwvh LXhgG7 8GLG7Huv7, pv urG pHhG JL9Xu H4PHdp 97vwXmGp urG pHhG vXu9Xu, gXu urG vXu9Xu rHp urG puHuJpuJmH4 H99GH7HLmG vq 7HLwvh uGju.</p>
+<h2>Performance</h2>
+<p>0rG GLuJ7G vgqXpmHuJvL 4HdG7 Jp 4J8ruPGJ8ru. 0rG hH99JL8 8GLG7HuJvL, pm7Hhg4JL8, HLw qvLu 9HumrJL8 H44 rH99GL JL hJ44JpGmvLwp. 0rG qvLu 9HumrJL8 XpGp H fG7v-wG9GLwGLmd gJLH7d 9H7pG7 urHu wJ7Gmu4d hHLJ9X4HuGp I9GL0d9G uHg4G wHuH, Lv rGHod qvLu 4Jg7H7JGp 7GiXJ7Gw.</p>
+<p>nL urG g7vPpG7, urG 9HumrGw qvLu mHL gG 8GLG7HuGw m4JGLu-pJwG. 0rG 9H8G 4vHwp PJur HL GjJpuJL8 gHpG qvLu, 1HoH2m7J9u qGumrGp urG qvLu qJ4G, 9HumrGp Ju PJur urG 4J8HuX7G uHg4Gp, HLw JLxGmup Ju gHmO Hp H g4vg zUt. 0rG uGju 7G-7GLwG7p JLpuHLu4d vLmG urG 9HumrGw qvLu Jp 7GHwd. zLuJ4 urGL, R22 rJwGp urG mvLuGLu PJur HL v9HmJud u7HLpJuJvL pv XpG7p LGoG7 pGG urG pm7Hhg4Gw puHuG.</p>
+<p>0rG voG7rGHw Jp hJLJhH4:</p>
+<ul>
+<li>CvLu qJ4G 87vPp gd H qGP OJ4vgduGp qv7 urG HwwGw 4J8HuX7G uHg4Gp</li>
+<li>2m7Hhg4Gw uGju Jp pHhG v7 4H78G7 urHL urG 4GL8ur vq urG v7J8JLH4, wG9GLwJL8 vL mrvpGL pGiXGLmG 4GL8ur wJpu7JgXuJvL</li>
+<li>R4JGLu-pJwG qvLu 9HumrJL8 mvh94GuGp JL H qGP hJ44JpGmvLwp vL hvwG7L rH7wPH7G</li>
+</ul>
+<p>0rG7G Jp Lv pG7oG7 7vXLw-u7J9 qv7 wGm7d9uJvL, Lv 1HoH2m7J9u 7XLuJhG uGju 7G94HmGhGLu, HLw Lv EIF hHLJ9X4HuJvL. 0rG g7vPpG7&#39;p vPL uGju prH9JL8 GL8JLG wvGp H44 urG Pv7O.</p>
+</article>
+  </body>
+</html>

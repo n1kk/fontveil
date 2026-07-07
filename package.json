@@ -22,7 +22,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "bench": "vitest bench",
-    "build": "tsc"
+    "build": "tsc",
+    "pages": "cd demo && pnpm run deploy"
   },
   "keywords": [],
   "author": "",

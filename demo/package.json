@@ -5,13 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:server": "tsx src/server.ts",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "vite build --emptyOutDir",
+    "preview": "vite preview",
+    "deploy": "pnpm run build && rm -rf ../pages && cp -r dist ../pages"
   },
   "dependencies": {
-    "@hono/node-server": "^2.0.4",
-    "hono": "^4.12.24",
     "marked": "^18.0.5",
     "fontveil": "workspace:*"
   },
