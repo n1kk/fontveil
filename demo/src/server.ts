@@ -8,11 +8,11 @@ import {
   scramble,
   createObfuscatedFont,
   type ObfuscationMapping,
-} from "obfuscai";
+} from "fontveil";
 
 const app = new Hono();
 const PORT = Number(process.env.PORT) || 3000;
-const SEED = process.env.SEED || "obfuscai-default-seed";
+const SEED = process.env.SEED || "fontveil-default-seed";
 
 const BASE_FONT = path.join(
   import.meta.dirname,
@@ -103,5 +103,5 @@ function escapeAttr(s: string): string {
 
 init();
 serve({ fetch: app.fetch, hostname: "0.0.0.0", port: PORT }, () => {
-  console.log(`obfuscai demo running at http://0.0.0.0:${PORT}`);
+  console.log(`fontveil demo running at http://0.0.0.0:${PORT}`);
 });

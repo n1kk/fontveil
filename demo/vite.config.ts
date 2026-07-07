@@ -6,14 +6,16 @@ import { generateMapping } from "../src/mapping.ts";
 import { scramble } from "../src/scrambler.ts";
 import type { ObfuscationMapping } from "../src/types.ts";
 
-const SEED = "obfuscai-default-seed";
+const SEED = "fontveil-default-seed";
 const MAPPING_OPTIONS = {
   seqLength: 1,
-  charset: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split(""),
-  scrambleAlphabet: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+  charset:
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".split(""),
+  scrambleAlphabet:
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
 };
 
-function obfuscaiPlugin(): Plugin {
+function fontveilPlugin(): Plugin {
   const mapping = generateMapping(SEED, MAPPING_OPTIONS);
 
   function scrambleMarkdown(md: string, m: ObfuscationMapping): string {
@@ -33,7 +35,7 @@ function obfuscaiPlugin(): Plugin {
   }
 
   return {
-    name: "obfuscai",
+    name: "fontveil",
     transformIndexHtml(html) {
       if (!html.includes("{{content}}")) return html;
 
@@ -48,7 +50,7 @@ function obfuscaiPlugin(): Plugin {
 export default defineConfig({
   root: "src",
   publicDir: path.join(__dirname, "public"),
-  plugins: [obfuscaiPlugin()],
+  plugins: [fontveilPlugin()],
   server: {
     host: true,
     allowedHosts: true,

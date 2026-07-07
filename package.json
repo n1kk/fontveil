@@ -1,5 +1,5 @@
 {
-  "name": "obfuscai",
+  "name": "fontveil",
   "version": "1.0.0",
   "description": "Font ligature text obfuscation",
   "main": "src/index.ts",
